@@ -1,8 +1,13 @@
 const express = require("express");
 const JWT_SECRET = "randomsavitaillgoto"
 const jwt = require('jsonwebtoken');
+const cors = require("cors")
 const app = express();
 app.use(express.json());
+
+// app.use(cors({
+//     domains:  ["app.demo.com"]
+// }))
 
 const users = [];
 
@@ -10,6 +15,11 @@ function logger(req, res, next) {
     console.log(req.method + " request came");
     next();
 }
+
+//localhost:3000 // cors concept
+app.get("/", function(req,res){
+    res.sendFile(__dirname + "/public/index.html");
+})
 
 app.post("/signup", logger, function(req,res){
     const username = req.body.username
@@ -49,13 +59,12 @@ app.post("/signin", logger, function(req, res){
         return
     } else  {
         const token = jwt.sign({
-            username: "raman"
+            username: foundUser.username
         }, JWT_SECRET); // convert their username over to a jwt
         res.header("jwt",token);
 
         res.header("random","savita");
 
-        //foundUser.token = token;
         res.json({
             token: token
         })
@@ -66,7 +75,9 @@ app.post("/signin", logger, function(req, res){
 function auth(req, res, next){
     const token = req.headers.token;
     const decodedData = jwt.verify(token, JWT_SECRET);
+
     if(decodedData.username) {
+        //req = {status, headers...., username, password, userFirstName}
         req.username = decodedData.username;
         next()
     } else {
